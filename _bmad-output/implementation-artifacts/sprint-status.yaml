@@ -45,6 +45,7 @@ development_status:
   1-1-csv-file-upload-component: review
   1-2-multi-bank-format-detection-and-column-mapping: review
   1-3-clean-validate-and-report-transaction-data: review
+  1-4-multi-format-date-support: ready-for-dev
   1-4-multi-format-date-support: backlog
   1-5-multi-encoding-csv-support: backlog
   1-6-setup-project-structure-and-environment-configuration: backlog

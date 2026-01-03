@@ -6,9 +6,46 @@ It handles data type validation, missing value handling, and error reporting.
 """
 
 import pandas as pd
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from datetime import datetime
 import re
+
+
+def detect_date_format(date_string: str) -> str:
+    """
+    Detect date format from string pattern.
+    
+    Args:
+        date_string: Date string to analyze
+        
+    Returns:
+        str: Format code - 'ISO', 'DMY', 'MDY', or 'AMBIGUOUS'
+    """
+    # Check ISO format (YYYY-MM-DD or YYYY/MM/DD)
+    if re.match(r'^\d{4}[-/]\d{2}[-/]\d{2}', date_string):
+        return 'ISO'
+    
+    # Extract numeric parts from common separators (/, -, .)
+    parts = re.findall(r'\d+', date_string)
+    
+    if len(parts) >= 3:
+        try:
+            first, second = int(parts[0]), int(parts[1])
+            
+            # If first > 12, must be day (DD/MM/YYYY)
+            if first > 12:
+                return 'DMY'
+            
+            # If second > 12, first must be month (MM/DD/YYYY)
+            if second > 12:
+                return 'MDY'
+            
+            # Both values <= 12: ambiguous
+            return 'AMBIGUOUS'
+        except (ValueError, IndexError):
+            pass
+    
+    return 'UNKNOWN'
 
 
 def clean_amount(value) -> float:
@@ -55,7 +92,13 @@ def clean_amount(value) -> float:
 
 def parse_date(value, dayfirst: bool = True) -> datetime:
     """
-    Parse date value to datetime object.
+    Parse date value to datetime object with support for multiple formats.
+    
+    Supports:
+    - DD/MM/YYYY (European format, default)
+    - MM/DD/YYYY (US format, when dayfirst=False)
+    - ISO format (YYYY-MM-DD)
+    - Various separators (/, -, .)
     
     Args:
         value: Date value (str or datetime)
@@ -65,7 +108,7 @@ def parse_date(value, dayfirst: bool = True) -> datetime:
         datetime: Parsed date
         
     Raises:
-        ValueError: If value cannot be parsed as date
+        ValueError: If value cannot be parsed as date, with helpful format hints
     """
     if pd.isna(value):
         raise ValueError("Date is missing")
@@ -80,12 +123,31 @@ def parse_date(value, dayfirst: bool = True) -> datetime:
     if not value_str:
         raise ValueError("Date is empty")
     
+    # Detect format for better error messages
+    detected_format = detect_date_format(value_str)
+    
     try:
         # Use pandas to_datetime which handles multiple formats
+        # It automatically handles ISO, DD/MM/YYYY, MM/DD/YYYY based on dayfirst
         parsed = pd.to_datetime(value_str, dayfirst=dayfirst)
         return parsed.to_pydatetime()
     except Exception as e:
-        raise ValueError(f"Cannot parse '{value}' as date: {str(e)}")
+        # Provide helpful error message based on detected format
+        error_msg = f"Cannot parse '{value}' as date"
+        
+        if detected_format == 'UNKNOWN':
+            error_msg += ". Expected format: DD/MM/YYYY (e.g., 25/12/2024) or YYYY-MM-DD"
+        elif 'day is out of range' in str(e).lower() or 'month must be' in str(e).lower():
+            error_msg += f". Invalid day or month value"
+            if detected_format == 'DMY':
+                error_msg += " (detected DD/MM/YYYY format)"
+            elif detected_format == 'MDY':
+                error_msg += " (detected MM/DD/YYYY format)"
+        elif detected_format == 'AMBIGUOUS':
+            format_used = "DD/MM/YYYY" if dayfirst else "MM/DD/YYYY"
+            error_msg += f". Ambiguous date - interpreted as {format_used}"
+        
+        raise ValueError(error_msg)
 
 
 def validate_row(row: pd.Series, row_number: int) -> Tuple[bool, str]:

@@ -11,8 +11,46 @@ from utils.data_validator import (
     clean_amount,
     parse_date,
     validate_row,
-    validate_dataframe
+    validate_dataframe,
+    detect_date_format
 )
+
+
+class TestDetectDateFormat:
+    """Tests for detect_date_format function."""
+    
+    def test_detect_iso_format(self):
+        """Test detection of ISO format (YYYY-MM-DD)."""
+        assert detect_date_format("2025-01-15") == 'ISO'
+        assert detect_date_format("2024-12-25") == 'ISO'
+    
+    def test_detect_iso_format_with_slash(self):
+        """Test detection of ISO format with slashes."""
+        assert detect_date_format("2025/01/15") == 'ISO'
+    
+    def test_detect_dmy_format_unambiguous(self):
+        """Test detection of DD/MM/YYYY when day > 12."""
+        assert detect_date_format("25/12/2024") == 'DMY'
+        assert detect_date_format("31/01/2025") == 'DMY'
+        assert detect_date_format("15-03-2025") == 'DMY'
+    
+    def test_detect_mdy_format_unambiguous(self):
+        """Test detection of MM/DD/YYYY when month > 12."""
+        # When second number > 12, first must be month
+        assert detect_date_format("01/25/2025") == 'MDY'
+        assert detect_date_format("12/31/2024") == 'MDY'
+    
+    def test_detect_ambiguous_format(self):
+        """Test detection of ambiguous dates (both values <= 12)."""
+        assert detect_date_format("01/02/2025") == 'AMBIGUOUS'
+        assert detect_date_format("05/06/2024") == 'AMBIGUOUS'
+        assert detect_date_format("10/11/2025") == 'AMBIGUOUS'
+    
+    def test_detect_unknown_format(self):
+        """Test detection of invalid or unknown formats."""
+        assert detect_date_format("not a date") == 'UNKNOWN'
+        assert detect_date_format("") == 'UNKNOWN'
+        assert detect_date_format("2025") == 'UNKNOWN'
 
 
 class TestCleanAmount:
@@ -99,6 +137,27 @@ class TestParseDate:
         assert result.month == 1
         assert result.day == 1
     
+    def test_parse_date_string_ddmmyyyy_unambiguous(self):
+        """Test parsing unambiguous DD/MM/YYYY format (day > 12)."""
+        result = parse_date("25/12/2024", dayfirst=True)
+        assert result.year == 2024
+        assert result.month == 12
+        assert result.day == 25
+    
+    def test_parse_date_string_ddmmyyyy_with_dash(self):
+        """Test parsing DD-MM-YYYY format with dashes."""
+        result = parse_date("15-03-2025", dayfirst=True)
+        assert result.year == 2025
+        assert result.month == 3
+        assert result.day == 15
+    
+    def test_parse_date_string_ddmmyyyy_with_dot(self):
+        """Test parsing DD.MM.YYYY format with dots."""
+        result = parse_date("20.06.2025", dayfirst=True)
+        assert result.year == 2025
+        assert result.month == 6
+        assert result.day == 20
+    
     def test_parse_date_string_mmddyyyy(self):
         """Test parsing MM/DD/YYYY format."""
         result = parse_date("01/15/2025", dayfirst=False)
@@ -106,12 +165,44 @@ class TestParseDate:
         assert result.month == 1
         assert result.day == 15
     
+    def test_parse_date_string_mmddyyyy_unambiguous(self):
+        """Test parsing unambiguous MM/DD/YYYY format (day > 12)."""
+        result = parse_date("12/25/2024", dayfirst=False)
+        assert result.year == 2024
+        assert result.month == 12
+        assert result.day == 25
+    
     def test_parse_date_iso_format(self):
         """Test parsing ISO format (YYYY-MM-DD)."""
         result = parse_date("2025-01-01")
         assert result.year == 2025
         assert result.month == 1
         assert result.day == 1
+    
+    def test_parse_date_iso_format_with_slash(self):
+        """Test parsing ISO format with slashes (YYYY/MM/DD)."""
+        result = parse_date("2025/01/15")
+        assert result.year == 2025
+        assert result.month == 1
+        assert result.day == 15
+    
+    def test_parse_date_ambiguous_dayfirst_true(self):
+        """Test parsing ambiguous date with dayfirst=True (DD/MM/YYYY)."""
+        # 05/06/2025 could be May 6 or June 5
+        # With dayfirst=True, should be 5 June 2025
+        result = parse_date("05/06/2025", dayfirst=True)
+        assert result.year == 2025
+        assert result.month == 6
+        assert result.day == 5
+    
+    def test_parse_date_ambiguous_dayfirst_false(self):
+        """Test parsing ambiguous date with dayfirst=False (MM/DD/YYYY)."""
+        # 05/06/2025 could be May 6 or June 5
+        # With dayfirst=False, should be 6 May 2025
+        result = parse_date("05/06/2025", dayfirst=False)
+        assert result.year == 2025
+        assert result.month == 5
+        assert result.day == 6
     
     def test_parse_date_missing(self):
         """Test handling missing dates."""
