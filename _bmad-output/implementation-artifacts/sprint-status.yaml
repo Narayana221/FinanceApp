@@ -1,0 +1,81 @@
+# generated: 2026-01-03
+# project: FinanceApp
+# project_key: financeapp
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-03
+project: FinanceApp
+project_key: financeapp
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Secure Data Ingestion & Basic Setup
+  epic-1: in-progress
+  1-1-csv-file-upload-component: review
+  1-2-multi-bank-format-detection-and-column-mapping: review
+  1-3-clean-validate-and-report-transaction-data: review
+  1-4-multi-format-date-support: backlog
+  1-5-multi-encoding-csv-support: backlog
+  1-6-setup-project-structure-and-environment-configuration: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Core Financial Analytics & Visualization
+  epic-2: backlog
+  2-1-transaction-categorization-engine: backlog
+  2-2-income-and-expense-calculations: backlog
+  2-3-display-financial-insights-with-charts: backlog
+  2-4-spending-aggregation-by-category: backlog
+  2-5-monthly-trend-analysis: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Personalized AI Coaching & Insights
+  epic-3: backlog
+  3-1-gemini-api-integration-and-authentication: backlog
+  3-2-prompt-engineering-and-json-summary-preparation: backlog
+  3-3-display-ai-cashflow-coach-summary: backlog
+  3-4-api-error-handling-and-retry-logic: backlog
+  3-5-graceful-degradation-analytics-only-mode: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Data Export & Management
+  epic-4: backlog
+  4-1-export-processed-data-summary: backlog
+  4-2-export-ai-generated-monthly-plan: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Future Enhancements - Goal Setting & Customization
+  epic-5: backlog
+  5-1-savings-goal-input: backlog
+  5-2-implement-ai-coach-tone-mode-selection: backlog
+  epic-5-retrospective: optional

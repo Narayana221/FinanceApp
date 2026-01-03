@@ -1,0 +1,15 @@
+Date,Description,Amount,Category
+01/01/2025,Tesco Superstore,-45.30,Groceries
+02/01/2025,Salary Payment,2500.00,Income
+invalid_date,Bad Transaction,100.00,Error
+04/01/2025,Rent Payment,-800.00,Housing
+05/01/2025,Coffee Shop,-3.50,Food
+06/01/2025,Invalid Amount,not_a_number,Misc
+07/01/2025,Sainsburys,-65.20,Groceries
+08/01/2025,Bonus,£500.00,Income
+32/01/2025,Invalid Date Format,-25.00,Transport
+10/01/2025,Restaurant,-45.00,Dining
+11/01/2025,Utilities Bill,-120.00,Bills
+12/01/2025,Refund,20.00,Income
+13/01/2025,Groceries with comma,"1,234.56",Shopping
+14/01/2025,Negative in parens,(85.00),Food

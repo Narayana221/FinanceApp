@@ -1,0 +1,6 @@
+Number,Date,Account,Amount,Subcategory,Memo
+001,01/01/2025,Current,-45.30,Shopping,Tesco Superstore
+002,02/01/2025,Current,-32.15,Shopping,Sainsbury's
+003,03/01/2025,Current,-3.50,Dining,Coffee Shop
+004,04/01/2025,Current,2500.00,Income,Salary Payment
+005,05/01/2025,Current,-850.00,Housing,Rent Payment
