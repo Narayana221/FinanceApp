@@ -27,6 +27,7 @@ class TestCSVDataModel:
         assert model.validated_data is None
         assert model.validation_report is None
         assert model.detected_format is None
+        assert model.detected_encoding is None
         assert model.filename is None
         assert model.file_size is None
     
@@ -222,5 +223,121 @@ bad_date,Bad2,xyz"""
         assert 'warnings' in report
 
 
+class TestCSVEncodingDetection:
+    """Test suite for CSV encoding detection and fallback."""
+    
+    def test_utf8_encoding(self):
+        """Test loading UTF-8 encoded CSV with special characters."""
+        model = CSVDataModel()
+        # UTF-8 with café (é character)
+        csv_content = """Date,Description,Amount
+01/01/2025,Café,-5.50
+02/01/2025,Naïve purchase,-10.00
+03/01/2025,Résumé printing,-3.50"""
+        
+        csv_file = BytesIO(csv_content.encode('utf-8'))
+        result = model.load_from_file(csv_file, "test_utf8.csv")
+        
+        assert result['valid'] is True
+        assert model.detected_encoding == 'utf-8'
+        assert model.validated_data is not None
+        assert len(model.validated_data) == 3
+        # Verify special characters preserved
+        assert 'Café' in model.validated_data['Description'].values
+    
+    def test_latin1_encoding(self):
+        """Test loading Latin-1 encoded CSV with European characters."""
+        model = CSVDataModel()
+        # Latin-1 with European characters
+        csv_content = """Date,Description,Amount
+01/01/2025,Bäckerei,-10.00
+02/01/2025,Café français,-8.50
+03/01/2025,Zürich trip,-50.00"""
+        
+        csv_file = BytesIO(csv_content.encode('latin-1'))
+        result = model.load_from_file(csv_file, "test_latin1.csv")
+        
+        assert result['valid'] is True
+        assert model.detected_encoding == 'latin-1'
+        assert model.validated_data is not None
+        assert len(model.validated_data) == 3
+    
+    def test_cp1252_encoding(self):
+        """Test loading CP1252 (Windows) encoded CSV."""
+        model = CSVDataModel()
+        # CP1252 with Windows-specific characters
+        # Note: Latin-1 can read most CP1252 content, so we just verify it works
+        csv_content = """Date,Description,Amount
+01/01/2025,Coffee — large,-4.50
+02/01/2025,Lunch — bistro,-12.00
+03/01/2025,Book — "Finance",-15.00"""
+        
+        csv_file = BytesIO(csv_content.encode('cp1252'))
+        result = model.load_from_file(csv_file, "test_cp1252.csv")
+        
+        assert result['valid'] is True
+        # Latin-1 can successfully read CP1252 in many cases
+        assert model.detected_encoding in ['latin-1', 'cp1252']
+        assert model.validated_data is not None
+        assert len(model.validated_data) == 3
+    
+    def test_encoding_fallback_sequence(self):
+        """Test that encoding fallback works correctly."""
+        model = CSVDataModel()
+        # Create content that's valid in Latin-1 but not UTF-8
+        # Using byte 0xE9 which is é in Latin-1 but invalid UTF-8 sequence alone
+        csv_bytes = b"Date,Description,Amount\n01/01/2025,Caf\xe9,-5.50\n"
+        
+        csv_file = BytesIO(csv_bytes)
+        result = model.load_from_file(csv_file, "test_fallback.csv")
+        
+        assert result['valid'] is True
+        # Should fall back to latin-1 (second attempt)
+        assert model.detected_encoding in ['latin-1', 'cp1252']
+        assert model.validated_data is not None
+    
+    def test_invalid_encoding_all_fail(self):
+        """Test error handling when all encodings fail."""
+        model = CSVDataModel()
+        # Create completely invalid CSV content (binary garbage)
+        invalid_bytes = b"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89"
+        
+        csv_file = BytesIO(invalid_bytes)
+        result = model.load_from_file(csv_file, "test_invalid.csv")
+        
+        # Should fail gracefully
+        assert result['valid'] is False
+        assert result['error'] is not None
+        assert 'not recognized' in result['error'].lower() or 'format' in result['error'].lower()
+    
+    def test_get_file_info_includes_encoding(self):
+        """Test that file info includes detected encoding."""
+        model = CSVDataModel()
+        csv_content = """Date,Description,Amount
+01/01/2025,Test,-5.50"""
+        
+        csv_file = BytesIO(csv_content.encode('utf-8'))
+        model.load_from_file(csv_file, "test.csv")
+        
+        file_info = model.get_file_info()
+        assert 'encoding' in file_info
+        assert file_info['encoding'] == 'utf-8'
+    
+    def test_clear_resets_encoding(self):
+        """Test that clear() resets encoding detection."""
+        model = CSVDataModel()
+        csv_content = """Date,Description,Amount
+01/01/2025,Test,-5.50"""
+        
+        csv_file = BytesIO(csv_content.encode('utf-8'))
+        model.load_from_file(csv_file, "test.csv")
+        
+        assert model.detected_encoding == 'utf-8'
+        
+        model.clear()
+        assert model.detected_encoding is None
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

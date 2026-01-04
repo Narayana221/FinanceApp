@@ -22,6 +22,7 @@ class CSVDataModel:
         self.validated_data: Optional[pd.DataFrame] = None
         self.validation_report: Optional[Dict] = None
         self.detected_format: Optional[str] = None
+        self.detected_encoding: Optional[str] = None
         self.filename: Optional[str] = None
         self.file_size: Optional[int] = None
     
@@ -58,8 +59,8 @@ class CSVDataModel:
             # Reset for pandas
             file.seek(0)
             
-            # Read CSV
-            self.raw_data = pd.read_csv(file)
+            # Read CSV with encoding detection
+            self.raw_data = self._read_csv_with_encoding(file)
             
             # Detect bank format and normalize
             try:
@@ -103,6 +104,46 @@ class CSVDataModel:
                 'error': 'File format not recognized. Please upload a CSV file.',
                 'rows': 0
             }
+    
+    def _read_csv_with_encoding(self, file: BytesIO) -> pd.DataFrame:
+        """
+        Read CSV file with automatic encoding detection.
+        
+        Tries encodings in order: UTF-8 → Latin-1 → CP1252
+        
+        Args:
+            file: BytesIO object containing CSV data
+            
+        Returns:
+            pd.DataFrame: Parsed CSV data
+            
+        Raises:
+            ValueError: If all encoding attempts fail
+        """
+        encodings = ['utf-8', 'latin-1', 'cp1252']
+        last_error = None
+        
+        for encoding in encodings:
+            try:
+                # Reset file pointer
+                file.seek(0)
+                
+                # Try reading with current encoding
+                df = pd.read_csv(file, encoding=encoding, skipinitialspace=True)
+                
+                # Success - store encoding
+                self.detected_encoding = encoding
+                return df
+                
+            except UnicodeDecodeError as e:
+                last_error = e
+                continue
+        
+        # All encodings failed
+        raise ValueError(
+            f"File encoding not recognized. Please ensure the file is a valid CSV. "
+            f"Tried encodings: {', '.join(encodings)}"
+        )
     
     def get_normalized_data(self) -> Optional[pd.DataFrame]:
         """Get normalized transaction data."""
@@ -151,12 +192,13 @@ class CSVDataModel:
         Get file information.
         
         Returns:
-            Dictionary with file information
+            Dictionary with file information including detected encoding
         """
         return {
             'filename': self.filename,
             'size': self.file_size,
-            'rows': len(self.normalized_data) if self.normalized_data is not None else 0
+            'rows': len(self.normalized_data) if self.normalized_data is not None else 0,
+            'encoding': self.detected_encoding
         }
     
     def clear(self):
@@ -166,5 +208,6 @@ class CSVDataModel:
         self.validated_data = None
         self.validation_report = None
         self.detected_format = None
+        self.detected_encoding = None
         self.filename = None
         self.file_size = None
