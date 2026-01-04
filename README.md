@@ -2,22 +2,33 @@
 
 A Streamlit-based financial analysis tool that helps students and young professionals understand their spending patterns through AI-powered coaching.
 
-## Features (Stories 1.1 & 1.2 - MVP)
+## Features (Epic 1 Complete - Stories 1.1-1.6)
 
 - 📁 **CSV File Upload**: Simple interface to upload bank transaction CSV files
 - 🏦 **Multi-Bank Support**: Automatically detects and normalizes Monzo, Revolut, and Barclays formats
 - 🔍 **Smart Detection**: Fallback detection for unknown CSV formats
-- ✅ **Intelligent Validation**: Automatically detects required columns (Date, Description, Amount)
-- 📊 **Data Preview**: View your normalized transactions immediately after upload
+- ✅ **Data Validation**: Comprehensive validation with error reporting and skipped row tracking
+- 📊 **Multi-Format Date Support**: Handles DD/MM/YYYY, MM/DD/YYYY, and ISO formats
+- 🌍 **Multi-Encoding Support**: UTF-8, Latin-1, CP1252 with automatic fallback
+- 📈 **Validation Reports**: Detailed processing statistics and data quality warnings
 - 🔒 **Privacy First**: All processing happens in-memory, no data saved to disk
+- 🧪 **Well-Tested**: 96 comprehensive tests with 70%+ code coverage
 
 ## Quick Start
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Narayana221/FinanceApp.git
+cd FinanceApp
+
 # Install dependencies
 pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env and add your Gemini API key
 ```
 
 ### Running the App
@@ -96,17 +107,23 @@ FinanceApp/
 │
 ├── utils/                # Utility modules
 │   ├── __init__.py
-│   └── bank_detector.py  # Bank format detection & normalization
+│   ├── bank_detector.py  # Bank format detection & normalization
+│   └── data_validator.py # Data validation and cleaning
 │
-├── tests/                # Test suite
-│   ├── test_csv_model.py       # Model layer tests
-│   ├── test_csv_controller.py  # Controller layer tests
-│   └── test_bank_detector.py   # Bank detection tests
+├── tests/                # Test suite (96 tests)
+│   ├── test_csv_model.py         # Model layer tests
+│   ├── test_csv_controller.py    # Controller layer tests
+│   ├── test_bank_detector.py     # Bank detection tests
+│   └── test_data_validator.py    # Validation tests
 │
 └── _bmad-output/         # BMad Method artifacts
     └── implementation-artifacts/
         ├── 1-1-csv-file-upload-component.md
         ├── 1-2-multi-bank-format-detection-and-column-mapping.md
+        ├── 1-3-data-validation-and-reporting.md
+        ├── 1-4-multi-format-date-support.md
+        ├── 1-5-multi-encoding-csv-support.md
+        ├── 1-6-project-structure-environment.md
         └── sprint-status.yaml
 ```
 
@@ -126,22 +143,25 @@ Built using the BMad Method v6 (alpha.21) for structured agile development.
 
 - **Frontend/Backend**: Streamlit 1.28+ (Python web framework)
 - **Architecture**: MVC (Model-View-Controller) pattern
-- **Data Processing**: Pandas 2.0+
-- **Testing**: pytest 7.4+ with 39 tests
-- **Python**: 3.10+
+- **Data Processing**: Pandas 2.0+ with multi-format date and encoding support
+- **Testing**: pytest 7.4+ with 96 tests and 70%+ code coverage
+- **Environment**: python-dotenv for configuration management
+- **Python**: 3.9+
 
-### Next Stories
+### Next Stories (Epic 2: Core Financial Analytics)
 
-- Story 1.3: Data Cleaning & Validation
-- Story 1.4: Multi-Format Date Support  
-- Story 1.5: Multi-Encoding CSV Support
 - Story 2.1: Transaction Categorization Engine
+- Story 2.2: Basic Financial Calculations
+- Story 2.3: Spending Visualizations
+- Story 2.4: Income vs Expense Analysis
 
-## Security
+## Security & Privacy
 
 - ✅ All data processed in-memory (no disk storage)
-- ✅ Environment variables for API keys (.env file, not committed)
+- ✅ Environment variables for API keys (.env file, never committed)
 - ✅ No server-side persistence
+- ✅ `.gitignore` configured to protect sensitive data
+- ✅ `.env.example` template provided for safe configuration sharing
 
 ## License
 
