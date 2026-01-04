@@ -20,8 +20,14 @@ from views import (
     render_error,
     render_data_preview,
     render_placeholder,
-    render_validation_summary
+    render_validation_summary,
+    render_financial_summary_metrics,
+    render_spending_by_category_chart,
+    render_income_vs_expenses_chart,
+    render_extreme_values_table
 )
+from utils.categorizer import categorize_transactions, get_category_summary
+from utils.analytics import get_financial_summary, flag_extreme_values
 
 
 def initialize_session_state():
@@ -66,8 +72,46 @@ def main():
             # Render validation summary
             render_validation_summary(result['validation_report'])
             
-            # Render data preview
-            render_data_preview(result['data'])
+            # Get validated data
+            data = result['data']
+            
+            # --- Financial Analytics & Insights ---
+            st.markdown("---")
+            st.header("📊 Financial Insights")
+            
+            # Categorize transactions (Story 2.1)
+            categorized_data = categorize_transactions(data)
+            
+            # Calculate analytics (Story 2.2)
+            financial_summary = get_financial_summary(categorized_data)
+            category_summary = get_category_summary(categorized_data)
+            extreme_values = flag_extreme_values(categorized_data)
+            
+            # Display summary metrics (Story 2.3)
+            render_financial_summary_metrics(financial_summary)
+            
+            st.markdown("")  # Spacing
+            
+            # Display charts side by side
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                render_spending_by_category_chart(category_summary)
+            
+            with col2:
+                render_income_vs_expenses_chart(financial_summary)
+            
+            # Display extreme value warnings
+            if extreme_values:
+                st.markdown("---")
+                render_extreme_values_table(extreme_values)
+            
+            # --- Data Preview ---
+            st.markdown("---")
+            st.header("📋 Transaction Data")
+            
+            # Render data preview with categories
+            render_data_preview(categorized_data)
         else:
             # Render error message
             render_error(result['error'])
