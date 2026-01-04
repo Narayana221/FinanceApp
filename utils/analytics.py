@@ -208,3 +208,77 @@ def flag_extreme_values(df: pd.DataFrame, threshold: float = 1000.0) -> List[Dic
         })
     
     return flagged
+
+
+def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregate financial metrics by month for trend analysis.
+    
+    Groups categorized transactions by month (YYYY-MM format) and calculates
+    income, expenses, net savings, and savings rate for each month.
+    Useful for tracking financial progress over time.
+    
+    Args:
+        df: Categorized DataFrame with Date, Amount, Category columns
+        
+    Returns:
+        pd.DataFrame: Monthly metrics with columns:
+            - Month (str): YYYY-MM format
+            - Income (float): Total monthly income
+            - Expenses (float): Total monthly expenses (positive values)
+            - Net Savings (float): Income - Expenses
+            - Savings Rate (float): (Net Savings / Income) * 100
+        Empty DataFrame if insufficient data or errors
+            
+    Examples:
+        >>> df = pd.DataFrame({
+        ...     'Date': ['2025-01-15', '2025-01-20', '2025-02-10'],
+        ...     'Amount': [2500.00, -1000.00, 2500.00],
+        ...     'Category': ['Income', 'Bills', 'Income']
+        ... })
+        >>> trends = get_monthly_trends(df)
+        >>> trends['Month'].tolist()
+        ['2025-01', '2025-02']
+        >>> trends['Income'].tolist()
+        [2500.0, 2500.0]
+    """
+    if df is None or df.empty:
+        return pd.DataFrame()
+    
+    # Ensure Date column exists
+    if 'Date' not in df.columns:
+        return pd.DataFrame()
+    
+    # Create copy and ensure Date is datetime
+    result = df.copy()
+    result['Date'] = pd.to_datetime(result['Date'], errors='coerce')
+    
+    # Remove rows with invalid dates
+    result = result.dropna(subset=['Date'])
+    
+    if result.empty:
+        return pd.DataFrame()
+    
+    # Extract year-month (YYYY-MM format)
+    result['Month'] = result['Date'].dt.to_period('M').astype(str)
+    
+    # Group by month and calculate metrics
+    monthly_data = []
+    for month, group in result.groupby('Month'):
+        # Use existing get_financial_summary for consistency
+        summary = get_financial_summary(group)
+        monthly_data.append({
+            'Month': month,
+            'Income': summary['total_income'],
+            'Expenses': summary['total_expenses'],
+            'Net Savings': summary['net_savings'],
+            'Savings Rate': summary['savings_rate']
+        })
+    
+    # Convert to DataFrame and sort chronologically by month
+    trends_df = pd.DataFrame(monthly_data)
+    if not trends_df.empty:
+        trends_df = trends_df.sort_values('Month').reset_index(drop=True)
+    
+    return trends_df
+

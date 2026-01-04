@@ -207,3 +207,69 @@ def render_extreme_values_table(extreme_values: List[Dict]) -> None:
         use_container_width=True,
         hide_index=True
     )
+
+
+def render_monthly_trends_chart(trends_df: pd.DataFrame) -> None:
+    """
+    Display monthly financial trends as line charts.
+    
+    Shows three separate trend visualizations:
+    1. Income and Expenses over time (line chart)
+    2. Net Savings over time (line chart)
+    3. Savings Rate over time (line chart)
+    
+    Requires at least 2 months of data to show meaningful trends.
+    
+    Args:
+        trends_df: Monthly trends DataFrame from get_monthly_trends()
+                  Must contain columns: Month, Income, Expenses, Net Savings, Savings Rate
+                  
+    Examples:
+        >>> trends_df = pd.DataFrame({
+        ...     'Month': ['2025-01', '2025-02', '2025-03'],
+        ...     'Income': [2500.00, 2600.00, 2550.00],
+        ...     'Expenses': [1500.00, 1400.00, 1450.00],
+        ...     'Net Savings': [1000.00, 1200.00, 1100.00],
+        ...     'Savings Rate': [40.00, 46.15, 43.14]
+        ... })
+        >>> render_monthly_trends_chart(trends_df)
+        # Displays 3 line charts in Streamlit
+    """
+    if trends_df is None or trends_df.empty:
+        st.info("📅 Need data from multiple months to show trends.")
+        return
+    
+    if len(trends_df) < 2:
+        st.info("📅 Need at least 2 months of data to show meaningful trends.")
+        return
+    
+    st.subheader("📈 Monthly Trends")
+    
+    # Chart 1: Income vs Expenses Trend
+    st.markdown("**Income & Expenses Over Time**")
+    income_expense_df = trends_df.set_index('Month')[['Income', 'Expenses']]
+    st.line_chart(income_expense_df)
+    
+    st.markdown("")  # Spacing
+    
+    # Chart 2: Net Savings Trend
+    st.markdown("**Net Savings Over Time**")
+    savings_df = trends_df.set_index('Month')[['Net Savings']]
+    st.line_chart(savings_df)
+    
+    st.markdown("")  # Spacing
+    
+    # Chart 3: Savings Rate Trend
+    st.markdown("**Savings Rate Over Time (%)**")
+    rate_df = trends_df.set_index('Month')[['Savings Rate']]
+    st.line_chart(rate_df)
+    
+    # Show detailed monthly breakdown table
+    with st.expander("📊 View monthly breakdown"):
+        display_df = trends_df.copy()
+        display_df['Income'] = display_df['Income'].apply(lambda x: f"£{x:,.2f}")
+        display_df['Expenses'] = display_df['Expenses'].apply(lambda x: f"£{x:,.2f}")
+        display_df['Net Savings'] = display_df['Net Savings'].apply(lambda x: f"£{x:,.2f}")
+        display_df['Savings Rate'] = display_df['Savings Rate'].apply(lambda x: f"{x:.1f}%")
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+

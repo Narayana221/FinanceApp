@@ -24,10 +24,11 @@ from views import (
     render_financial_summary_metrics,
     render_spending_by_category_chart,
     render_income_vs_expenses_chart,
-    render_extreme_values_table
+    render_extreme_values_table,
+    render_monthly_trends_chart
 )
 from utils.categorizer import categorize_transactions, get_category_summary
-from utils.analytics import get_financial_summary, flag_extreme_values
+from utils.analytics import get_financial_summary, flag_extreme_values, get_monthly_trends
 
 
 def initialize_session_state():
@@ -105,6 +106,15 @@ def main():
             if extreme_values:
                 st.markdown("---")
                 render_extreme_values_table(extreme_values)
+            
+            # --- Monthly Trends ---
+            # Display only if data spans multiple months
+            monthly_trends = get_monthly_trends(categorized_data)
+            
+            if not monthly_trends.empty and len(monthly_trends) >= 2:
+                st.markdown("---")
+                st.header("📈 Monthly Trends")
+                render_monthly_trends_chart(monthly_trends)
             
             # --- Data Preview ---
             st.markdown("---")

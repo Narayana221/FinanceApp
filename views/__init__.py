@@ -19,7 +19,8 @@ from .charts import (
     render_financial_summary_metrics,
     render_spending_by_category_chart,
     render_income_vs_expenses_chart,
-    render_extreme_values_table
+    render_extreme_values_table,
+    render_monthly_trends_chart
 )
 
 __all__ = [
@@ -34,5 +35,6 @@ __all__ = [
     'render_financial_summary_metrics',
     'render_spending_by_category_chart',
     'render_income_vs_expenses_chart',
-    'render_extreme_values_table'
+    'render_extreme_values_table',
+    'render_monthly_trends_chart'
 ]
