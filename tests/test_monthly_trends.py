@@ -4,7 +4,6 @@ Test suite for monthly trend analysis functionality.
 Tests monthly aggregation, trend calculations, and edge cases.
 """
 
-import pytest
 import pandas as pd
 import numpy as np
 from datetime import datetime

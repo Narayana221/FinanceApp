@@ -17,7 +17,7 @@ from datetime import datetime
 BANK_FORMATS = {
     'monzo': {
         'date': 'Date',
-        'name': 'Description',
+        'name': 'Name',
         'amount': 'Amount',
         'category': 'Category'
     },
@@ -62,6 +62,28 @@ def detect_bank_format(df: pd.DataFrame) -> Optional[str]:
     return None
 
 
+def _calculate_amount_from_money_in_out(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Create a single 'Amount' column from 'Money In' and 'Money Out'.
+    
+    Args:
+        df: DataFrame containing 'Money In' and 'Money Out' columns
+        
+    Returns:
+        DataFrame with a unified 'Amount' column
+    """
+    # Convert to numeric, coercing errors to NaN
+    money_in = pd.to_numeric(df['Money In'], errors='coerce').fillna(0)
+    money_out = pd.to_numeric(df['Money Out'], errors='coerce').fillna(0)
+    
+    # Money In is positive, Money Out is negative
+    # Since Money Out is already negative in the file, we just sum them up
+    # If Money Out were positive, we would use `money_in - money_out`
+    df['Amount'] = money_in + money_out
+    
+    return df
+
+
 def normalize_columns(df: pd.DataFrame, format_name: str) -> pd.DataFrame:
     """
     Normalize DataFrame columns to standard format using known bank mapping.
@@ -91,6 +113,14 @@ def normalize_columns(df: pd.DataFrame, format_name: str) -> pd.DataFrame:
     # Rename columns
     normalized_df = df.rename(columns=rename_map)
     
+    # For Monzo: if we have both Name and Description columns, use Description (more detailed)
+    if format_name == 'monzo' and 'Name' in df.columns and 'Description' in df.columns:
+        # Rename Name to Description, but keep the original Description if it exists
+        normalized_df['Description'] = df['Description']
+    elif 'Name' in normalized_df.columns and 'Description' not in normalized_df.columns:
+        # If we only have Name, rename it to Description
+        normalized_df['Description'] = normalized_df['Name']
+
     # Keep only standard columns that exist
     existing_standard_cols = [col for col in STANDARD_COLUMNS if col in normalized_df.columns]
     normalized_df = normalized_df[existing_standard_cols]
