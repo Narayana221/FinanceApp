@@ -23,6 +23,11 @@ from .charts import (
     render_monthly_trends_chart
 )
 
+from .ai_coach_view import (
+    render_ai_coach_summary,
+    render_ai_coach_unavailable
+)
+
 __all__ = [
     'render_header',
     'render_upload_form',
@@ -36,5 +41,7 @@ __all__ = [
     'render_spending_by_category_chart',
     'render_income_vs_expenses_chart',
     'render_extreme_values_table',
-    'render_monthly_trends_chart'
+    'render_monthly_trends_chart',
+    'render_ai_coach_summary',
+    'render_ai_coach_unavailable'
 ]

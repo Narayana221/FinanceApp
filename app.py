@@ -25,10 +25,14 @@ from views import (
     render_spending_by_category_chart,
     render_income_vs_expenses_chart,
     render_extreme_values_table,
-    render_monthly_trends_chart
+    render_monthly_trends_chart,
+    render_ai_coach_summary,
+    render_ai_coach_unavailable
 )
 from utils.categorizer import categorize_transactions, get_category_summary
 from utils.analytics import get_financial_summary, flag_extreme_values, get_monthly_trends
+from utils.gemini_client import GeminiClient
+from utils.prompt_builder import build_coaching_prompt
 
 
 def initialize_session_state():
@@ -106,6 +110,34 @@ def main():
             if extreme_values:
                 st.markdown("---")
                 render_extreme_values_table(extreme_values)
+            
+            # --- AI Cashflow Coach (Story 3.3) ---
+            st.markdown("---")
+            
+            # Initialize AI client
+            client = GeminiClient()
+            
+            if client.is_configured():
+                # Build prompt with financial data
+                prompt = build_coaching_prompt(
+                    financial_summary,
+                    category_summary,
+                    savings_goal=None  # Future enhancement
+                )
+                
+                # Get AI advice
+                result = client.generate_financial_advice(prompt)
+                
+                if result['success']:
+                    render_ai_coach_summary(result['advice'])
+                else:
+                    # Show error message but continue
+                    render_ai_coach_unavailable(result['error'])
+            else:
+                # API key not configured
+                render_ai_coach_unavailable(
+                    "AI Coach currently unavailable. Configure GEMINI_API_KEY in .env file to enable personalized coaching."
+                )
             
             # --- Monthly Trends ---
             # Display only if data spans multiple months
