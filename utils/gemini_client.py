@@ -81,7 +81,7 @@ class GeminiClient:
             ],
             'generationConfig': {
                 'temperature': 0.7,
-                'maxOutputTokens': 500
+                'maxOutputTokens': 4096
             }
         }
         
@@ -181,6 +181,11 @@ class GeminiClient:
             
             # Navigate JSON structure to extract advice text
             advice_text = data['candidates'][0]['content']['parts'][0]['text']
+            
+            # Check if response was truncated
+            finish_reason = data['candidates'][0].get('finishReason', 'UNKNOWN')
+            if finish_reason == 'MAX_TOKENS':
+                advice_text += "\n\n*[Response truncated due to length. Please refresh and try again for a complete response.]*"
             
             return advice_text.strip()
             

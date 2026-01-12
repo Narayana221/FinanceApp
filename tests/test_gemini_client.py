@@ -22,7 +22,8 @@ class TestGeminiClientInitialization:
             assert client.api_key == 'test-api-key-123'
             assert client.is_configured() == True
     
-    def test_init_with_missing_api_key(self):
+    @patch('utils.gemini_client.load_dotenv')
+    def test_init_with_missing_api_key(self, mock_load_dotenv):
         """Test client initializes with None when API key is missing."""
         with patch.dict(os.environ, {}, clear=True):
             client = GeminiClient()
@@ -82,7 +83,8 @@ class TestGenerateFinancialAdvice:
         assert result['advice'] == 'Test financial advice'
         assert 'error' not in result
     
-    def test_missing_api_key_error(self):
+    @patch('utils.gemini_client.load_dotenv')
+    def test_missing_api_key_error(self, mock_load_dotenv):
         """Test error when API key is not configured."""
         with patch.dict(os.environ, {}, clear=True):
             client = GeminiClient()
@@ -195,7 +197,7 @@ class TestMakeRequest:
         assert 'text' in payload['contents'][0]['parts'][0]
         assert 'generationConfig' in payload
         assert payload['generationConfig']['temperature'] == 0.7
-        assert payload['generationConfig']['maxOutputTokens'] == 500
+        assert payload['generationConfig']['maxOutputTokens'] == 4096
     
     @patch('utils.gemini_client.requests.post')
     def test_api_key_in_url(self, mock_post):
@@ -378,7 +380,8 @@ class TestIsConfigured:
             client = GeminiClient()
             assert client.is_configured() == True
     
-    def test_is_configured_with_missing_key(self):
+    @patch('utils.gemini_client.load_dotenv')
+    def test_is_configured_with_missing_key(self, mock_load_dotenv):
         """Test is_configured returns False with missing API key."""
         with patch.dict(os.environ, {}, clear=True):
             client = GeminiClient()

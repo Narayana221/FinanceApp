@@ -60,16 +60,27 @@ app.py (after analytics):
 ---
 🤖 AI Cashflow Coach
 
+[While loading:]
+  - Show spinner with message: "💭 Analyzing your finances and preparing personalized recommendations..."
+  - Prevents user confusion during 5-15 second API call
+
 [If successful:]
-  - Display advice in formatted text area
-  - Use st.info() or st.success() for positive styling
-  - Format sections with markdown headers
+  - Display advice in formatted markdown
+  - Format sections with markdown headers (##)
+  - Advice appears below the header
 
 [If unavailable:]
   - Display: "AI Coach currently unavailable. Configure API key in .env file."
   - Or: "AI Coach unavailable. Using basic analysis."
   - Continue showing analytics normally
 ```
+
+**Loading State:**
+- Uses Streamlit's `st.spinner()` context manager
+- Message: "💭 Analyzing your finances and preparing personalized recommendations..."
+- Spinner appears immediately when API call starts
+- Automatically disappears when response received or timeout occurs
+- Provides clear visual feedback that processing is happening
 
 ### View Component Design
 
@@ -105,68 +116,81 @@ def render_ai_coach_unavailable(message: str) -> None:
 ```python
 # --- AI Cashflow Coach (Story 3.3) ---
 st.markdown("---")
+st.header("🤖 AI Cashflow Coach")
 
 from utils.gemini_client import GeminiClient
 from utils.prompt_builder import build_coaching_prompt
-from views.ai_coach_view import render_ai_coach_summary, render_ai_coach_unavailable
 
 # Initialize AI client
 client = GeminiClient()
 
 if client.is_configured():
-    # Build prompt with financial data
-    prompt = build_coaching_prompt(
-        financial_summary,
-        category_summary,
-        savings_goal=None  # Future enhancement
-    )
-    
-    # Get AI advice
-    result = client.generate_financial_advice(prompt)
+    # Show loading spinner while generating advice
+    with st.spinner("💭 Analyzing your finances and preparing personalized recommendations..."):
+        # Build prompt with financial data
+        prompt = build_coaching_prompt(
+            financial_summary,
+            category_summary,
+            savings_goal=None  # Future enhancement
+        )
+        
+        # Get AI advice
+        result = client.generate_financial_advice(prompt)
     
     if result['success']:
-        render_ai_coach_summary(result['advice'])
+        # Display advice (header already shown above)
+        st.markdown(result['advice'])
     else:
         # Show error message but continue
-        render_ai_coach_unavailable(result['error'])
+        st.warning(result['error'])
 else:
     # API key not configured
-    render_ai_coach_unavailable(
+    st.warning(
         "AI Coach currently unavailable. Configure GEMINI_API_KEY in .env file to enable personalized coaching."
     )
 ```
 
 ### Error Handling Strategy
 
-| Scenario | Handling | User Message |
-|----------|----------|--------------|
-| No API key | Check `is_configured()`, skip AI section | "Configure GEMINI_API_KEY in .env file" |
-| API timeout | GeminiClient handles, returns error dict | "AI Coach taking longer than expected" |
-| Rate limit | GeminiClient handles, returns error dict | "AI Coach busy. Please try again" |
-| Network error | GeminiClient handles with retry | "AI Coach unavailable. Please check connection" |
-| Parse error | GeminiClient handles | "AI Coach unavailable. Using basic analysis" |
+| Scenario | Handling | User Message | Loading State |
+|----------|----------|--------------|---------------|
+| No API key | Check `is_configured()`, skip AI call | "Configure GEMINI_API_KEY in .env file" | No spinner shown |
+| API timeout | GeminiClient handles, returns error dict | "AI Coach taking longer than expected" | Spinner shown during call |
+| Rate limit | GeminiClient handles, returns error dict | "AI Coach busy. Please try again" | Spinner shown during call |
+| Network error | GeminiClient handles with retry | "AI Coach unavailable. Please check connection" | Spinner shown during call |
+| Parse error | GeminiClient handles | "AI Coach unavailable. Using basic analysis" | Spinner shown during call |
 
-**All scenarios:** Continue showing analytics (graceful degradation)
+**All scenarios:** Continue showing analytics (graceful degradation)  
+**Loading indicator:** Spinner with message appears for 5-15 seconds during API call
 
 ### Testing Strategy
 
 **Manual Testing:**
 1. **With valid API key:**
    - Upload CSV
-   - Verify AI Coach section appears
-   - Verify advice displays in formatted text
+   - Verify loading spinner appears with message
+   - Verify AI Coach section appears after loading
+   - Verify advice displays in formatted markdown
    - Check for 3-5 recommendations, habit, spending leaks
 
 2. **Without API key:**
    - Remove/comment out GEMINI_API_KEY in .env
    - Upload CSV
+   - Verify NO spinner appears
    - Verify message: "Configure GEMINI_API_KEY"
    - Verify analytics still work
 
 3. **With invalid API key:**
    - Set invalid API key
    - Upload CSV
+   - Verify spinner appears then disappears
    - Verify error message appears
+   - Verify analytics still work
+
+4. **Slow API response:**
+   - Upload CSV
+   - Observe spinner for full duration (up to 15 seconds)
+   - Verify spinner disappears when response received
    - Verify analytics still work
 
 4. **Mock API timeout:**
@@ -283,16 +307,25 @@ No debugging required - implementation proceeded smoothly.
    - AI Coach section appears after financial analytics
    - Checks if GeminiClient is configured before attempting API call
    - Builds prompt using financial_summary and category_summary
-   - Displays AI advice in user-friendly format using st.info()
+   - Displays AI advice in user-friendly format using st.markdown()
    - Shows appropriate error messages using st.warning()
    - Graceful degradation: analytics always work even if AI fails
 
-3. **Error Handling**
+3. **Loading State Added (2026-01-10)**
+   - Added `st.spinner()` context manager for loading indication
+   - Message: "💭 Analyzing your finances and preparing personalized recommendations..."
+   - Spinner appears during 5-15 second API call
+   - Prevents user confusion during wait time
+   - Automatically disappears when response received or error occurs
+   - No spinner shown when API key not configured (immediate warning instead)
+
+4. **Error Handling**
    - No API key: Shows "Configure GEMINI_API_KEY in .env file"
    - API errors: Shows user-friendly error messages from GeminiClient
    - All errors handled gracefully without breaking analytics
+   - Loading spinner provides visual feedback during processing
 
-4. **Manual Testing Ready**
+5. **Manual Testing Ready**
    - App imports successfully (no syntax errors)
    - All 268 tests passing (no regressions)
    - Ready for manual testing with/without API key

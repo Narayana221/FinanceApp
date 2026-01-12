@@ -113,29 +113,33 @@ def main():
             
             # --- AI Cashflow Coach (Story 3.3) ---
             st.markdown("---")
+            st.header("🤖 AI Cashflow Coach")
             
             # Initialize AI client
             client = GeminiClient()
             
             if client.is_configured():
-                # Build prompt with financial data
-                prompt = build_coaching_prompt(
-                    financial_summary,
-                    category_summary,
-                    savings_goal=None  # Future enhancement
-                )
-                
-                # Get AI advice
-                result = client.generate_financial_advice(prompt)
+                # Show loading spinner while generating advice
+                with st.spinner("💭 Analyzing your finances and preparing personalized recommendations..."):
+                    # Build prompt with financial data
+                    prompt = build_coaching_prompt(
+                        financial_summary,
+                        category_summary,
+                        savings_goal=None  # Future enhancement
+                    )
+                    
+                    # Get AI advice
+                    result = client.generate_financial_advice(prompt)
                 
                 if result['success']:
-                    render_ai_coach_summary(result['advice'])
+                    # Display advice without header (already shown above)
+                    st.markdown(result['advice'])
                 else:
                     # Show error message but continue
-                    render_ai_coach_unavailable(result['error'])
+                    st.warning(result['error'])
             else:
                 # API key not configured
-                render_ai_coach_unavailable(
+                st.warning(
                     "AI Coach currently unavailable. Configure GEMINI_API_KEY in .env file to enable personalized coaching."
                 )
             

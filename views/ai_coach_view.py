@@ -20,11 +20,11 @@ def render_ai_coach_summary(advice_text: str) -> None:
                     recommendations, habits, and spending insights
                     
     Example:
-        >>> render_ai_coach_summary("RECOMMENDATIONS:\\n1. Save £50 on groceries...")
+        >>> render_ai_coach_summary("## RECOMMENDATIONS\\n- Save £50...")
         # Displays formatted AI advice in Streamlit UI
     """
     st.header("🤖 AI Cashflow Coach")
-    st.info(advice_text)
+    st.markdown(advice_text)
 
 
 def render_ai_coach_unavailable(message: str) -> None:
