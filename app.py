@@ -111,12 +111,43 @@ def main():
                 st.markdown("---")
                 render_extreme_values_table(extreme_values)
             
+            # --- Data Export (Story 4.1) ---
+            st.markdown("---")
+            st.subheader("💾 Export Data")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Export as CSV
+                csv_data = categorized_data.to_csv(index=False)
+                st.download_button(
+                    label="📄 Download CSV",
+                    data=csv_data,
+                    file_name="financeapp_processed_data.csv",
+                    mime="text/csv",
+                    help="Download processed transaction data as CSV"
+                )
+            
+            with col2:
+                # Export as JSON
+                json_data = categorized_data.to_json(orient='records', indent=2)
+                st.download_button(
+                    label="📋 Download JSON",
+                    data=json_data,
+                    file_name="financeapp_processed_data.json",
+                    mime="application/json",
+                    help="Download processed transaction data as JSON"
+                )
+            
             # --- AI Cashflow Coach (Story 3.3) ---
             st.markdown("---")
             st.header("🤖 AI Cashflow Coach")
             
             # Initialize AI client
             client = GeminiClient()
+            
+            # Store AI advice in session state for export
+            ai_advice_text = None
             
             if client.is_configured():
                 # Show loading spinner while generating advice
@@ -132,8 +163,33 @@ def main():
                     result = client.generate_financial_advice(prompt)
                 
                 if result['success']:
+                    ai_advice_text = result['advice']
                     # Display advice without header (already shown above)
-                    st.markdown(result['advice'])
+                    st.markdown(ai_advice_text)
+                    
+                    # --- Export AI Plan (Story 4.2) ---
+                    st.markdown("")  # Spacing
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        # Export as TXT
+                        st.download_button(
+                            label="📝 Download as Text",
+                            data=ai_advice_text,
+                            file_name="financeapp_monthly_plan.txt",
+                            mime="text/plain",
+                            help="Download AI coaching advice as plain text"
+                        )
+                    
+                    with col2:
+                        # Export as Markdown
+                        st.download_button(
+                            label="📄 Download as Markdown",
+                            data=ai_advice_text,
+                            file_name="financeapp_monthly_plan.md",
+                            mime="text/markdown",
+                            help="Download AI coaching advice as Markdown"
+                        )
                 else:
                     # Show error message but continue
                     st.warning(result['error'])
