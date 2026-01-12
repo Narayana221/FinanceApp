@@ -59,6 +59,39 @@ def main():
     # Get controller from session
     controller = st.session_state['csv_controller']
     
+    # --- Sidebar: User Preferences (Epic 5) ---
+    with st.sidebar:
+        st.header("⚙️ Settings")
+        
+        # Story 5.1: Savings Goal Input
+        st.subheader("💰 Savings Goal")
+        savings_goal = st.number_input(
+            "Monthly Savings Target (£)",
+            min_value=0,
+            max_value=10000,
+            value=0,
+            step=50,
+            help="Set your monthly savings target for personalized AI recommendations"
+        )
+        
+        # Store in session state
+        st.session_state['savings_goal'] = savings_goal if savings_goal > 0 else None
+        
+        # Story 5.2: Tone Mode Selection
+        st.subheader("🎭 AI Coach Tone")
+        tone_mode = st.selectbox(
+            "Tone Mode",
+            options=["Supportive", "Playful", "Serious"],
+            index=0,
+            help="Choose how the AI coach communicates with you"
+        )
+        
+        # Store in session state
+        st.session_state['tone_mode'] = tone_mode.lower()
+        
+        st.markdown("---")
+        st.caption("FinanceApp v1.0")
+    
     # Render header
     render_header()
     
@@ -152,11 +185,12 @@ def main():
             if client.is_configured():
                 # Show loading spinner while generating advice
                 with st.spinner("💭 Analyzing your finances and preparing personalized recommendations..."):
-                    # Build prompt with financial data
+                    # Build prompt with financial data and user preferences (Epic 5)
                     prompt = build_coaching_prompt(
                         financial_summary,
                         category_summary,
-                        savings_goal=None  # Future enhancement
+                        savings_goal=st.session_state.get('savings_goal'),  # Story 5.1
+                        tone=st.session_state.get('tone_mode', 'supportive')  # Story 5.2
                     )
                     
                     # Get AI advice

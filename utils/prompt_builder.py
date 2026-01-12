@@ -94,7 +94,8 @@ def prepare_financial_summary(
 def build_coaching_prompt(
     financial_summary: Dict[str, float],
     category_summary: Dict[str, float],
-    savings_goal: Optional[float] = None
+    savings_goal: Optional[float] = None,
+    tone: str = 'supportive'
 ) -> str:
     """
     Construct structured prompt for AI financial coaching.
@@ -110,6 +111,7 @@ def build_coaching_prompt(
                           net_savings, savings_rate
         category_summary: Dict with category spending amounts
         savings_goal: Optional monthly savings goal
+        tone: Tone mode for AI coach ('supportive', 'playful', 'serious')
         
     Returns:
         str: Structured prompt ready for Gemini API
@@ -122,7 +124,7 @@ def build_coaching_prompt(
         ...     'savings_rate': 28.00
         ... }
         >>> categories = {'Groceries': 450.00, 'Bills': 400.00}
-        >>> prompt = build_coaching_prompt(financial, categories, 1000.00)
+        >>> prompt = build_coaching_prompt(financial, categories, 1000.00, 'playful')
         >>> 'Monthly Income: £2,500.00' in prompt
         True
     """
@@ -151,8 +153,17 @@ def build_coaching_prompt(
     # Build category breakdown
     category_breakdown = _format_category_breakdown(category_summary, total_expenses)
     
+    # Define tone personality (Story 5.2)
+    tone_personalities = {
+        'supportive': 'You are a supportive personal finance coach. Be warm and encouraging - never critical.',
+        'playful': 'You are a fun and energetic personal finance coach! Use emojis, casual language, and make finances feel less scary. Be upbeat and motivating!',
+        'serious': 'You are a professional financial advisor. Be direct, factual, and analytical. Focus on numbers and concrete actions.'
+    }
+    
+    tone_personality = tone_personalities.get(tone.lower(), tone_personalities['supportive'])
+    
     # Construct the full prompt
-    prompt = f"""You are a supportive personal finance coach. Be warm and encouraging - never critical.
+    prompt = f"""{tone_personality}
 
 USER PROFILE:
 - Monthly Income: £{total_income:,.2f}
