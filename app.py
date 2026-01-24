@@ -183,50 +183,71 @@ def main():
             ai_advice_text = None
             
             if client.is_configured():
-                # Show loading spinner while generating advice
-                with st.spinner("💭 Analyzing your finances and preparing personalized recommendations..."):
-                    # Build prompt with financial data and user preferences (Epic 5)
-                    prompt = build_coaching_prompt(
-                        financial_summary,
-                        category_summary,
-                        savings_goal=st.session_state.get('savings_goal'),  # Story 5.1
-                        tone=st.session_state.get('tone_mode', 'supportive')  # Story 5.2
+                # Generate AI advice button
+                col1, col2, col3 = st.columns([2, 1, 1])
+                with col1:
+                    generate_button = st.button(
+                        "🎯 Generate AI Recommendations",
+                        help="Click to get personalized AI coaching based on your current settings",
+                        type="primary"
                     )
-                    
-                    # Get AI advice
-                    result = client.generate_financial_advice(prompt)
                 
-                if result['success']:
-                    ai_advice_text = result['advice']
-                    # Display advice without header (already shown above)
-                    st.markdown(ai_advice_text)
-                    
-                    # --- Export AI Plan (Story 4.2) ---
-                    st.markdown("")  # Spacing
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        # Export as TXT
-                        st.download_button(
-                            label="📝 Download as Text",
-                            data=ai_advice_text,
-                            file_name="financeapp_monthly_plan.txt",
-                            mime="text/plain",
-                            help="Download AI coaching advice as plain text"
+                # Only generate when button is clicked
+                if generate_button:
+                    # Show loading spinner while generating advice
+                    with st.spinner("💭 Analyzing your finances and preparing personalized recommendations..."):
+                        # Build prompt with financial data and user preferences (Epic 5)
+                        prompt = build_coaching_prompt(
+                            financial_summary,
+                            category_summary,
+                            savings_goal=st.session_state.get('savings_goal'),  # Story 5.1
+                            tone=st.session_state.get('tone_mode', 'supportive')  # Story 5.2
                         )
+                        
+                        # Get AI advice
+                        result = client.generate_financial_advice(prompt)
+                        
+                        # Cache the result
+                        st.session_state['ai_result'] = result
+                
+                # Display cached result if available
+                if 'ai_result' in st.session_state:
+                    result = st.session_state['ai_result']
                     
-                    with col2:
-                        # Export as Markdown
-                        st.download_button(
-                            label="📄 Download as Markdown",
-                            data=ai_advice_text,
-                            file_name="financeapp_monthly_plan.md",
-                            mime="text/markdown",
-                            help="Download AI coaching advice as Markdown"
-                        )
+                    if result['success']:
+                        ai_advice_text = result['advice']
+                        st.markdown("---")
+                        # Display advice
+                        st.markdown(ai_advice_text)
+                        
+                        # --- Export AI Plan (Story 4.2) ---
+                        st.markdown("")  # Spacing
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            # Export as TXT
+                            st.download_button(
+                                label="📝 Download as Text",
+                                data=ai_advice_text,
+                                file_name="financeapp_monthly_plan.txt",
+                                mime="text/plain",
+                                help="Download AI coaching advice as plain text"
+                            )
+                        
+                        with col2:
+                            # Export as Markdown
+                            st.download_button(
+                                label="📄 Download as Markdown",
+                                data=ai_advice_text,
+                                file_name="financeapp_monthly_plan.md",
+                                mime="text/markdown",
+                                help="Download AI coaching advice as Markdown"
+                            )
+                    else:
+                        # Show error message but continue
+                        st.warning(result['error'])
                 else:
-                    # Show error message but continue
-                    st.warning(result['error'])
+                    st.info("👆 Click the button above to generate personalized AI recommendations based on your current settings.")
             else:
                 # API key not configured
                 st.warning(
