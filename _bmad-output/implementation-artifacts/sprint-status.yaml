@@ -76,7 +76,7 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: Future Enhancements - Goal Setting & Customization
-  epic-5: backlog
-  5-1-savings-goal-input: backlog
-  5-2-implement-ai-coach-tone-mode-selection: backlog
+  epic-5: done
+  5-1-savings-goal-input: done
+  5-2-implement-ai-coach-tone-mode-selection: done
   epic-5-retrospective: optional

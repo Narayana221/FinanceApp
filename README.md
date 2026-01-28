@@ -2,6 +2,8 @@
 
 A Streamlit-based financial analysis tool that helps students and young professionals understand their spending patterns through AI-powered coaching.
 
+**GitHub Repository**: [https://github.com/Narayana221/FinanceApp](https://github.com/Narayana221/FinanceApp)
+
 ## Features (All 5 Epics Complete - 20 Stories)
 
 ### 📁 Epic 1: Secure Data Ingestion
@@ -21,7 +23,7 @@ A Streamlit-based financial analysis tool that helps students and young professi
 - **Summary Dashboard**: Key metrics including total income, expenses, and net savings
 
 ### 🤖 Epic 3: Personalized AI Coaching
-- **Gemini AI Integration**: Powered by Google's Gemini 2.0 Flash model
+- **Gemini AI Integration**: Powered by Google's Gemini 2.5 Flash model
 - **Personalized Advice**: Context-aware financial coaching based on your data
 - **Smart Prompts**: Structured prompts analyzing spending patterns and opportunities
 - **Button-Triggered Generation**: User controls when AI generates recommendations
@@ -190,10 +192,41 @@ FinanceApp/
 
 Built using the BMad Method v6 (alpha.21) for structured agile development.
 
+### AI Tools Used in Development
+
+**Primary Development Tools:**
+
+1. **GitHub Copilot with BMad Method**
+   - Used throughout development for AI-assisted coding
+   - Integrated with BMad workflow for structured feature implementation
+   - Code generation following MVC architectural patterns
+   - Test case creation and documentation assistance
+
+2. **Gemini CLI with BMad Method**
+   - Used for project planning and epic/story breakdown
+   - Assisted in generating implementation artifacts and documentation
+   - Helped structure the 5-epic, 20-story development workflow
+   - Generated technical specifications and acceptance criteria
+
+**How AI Tools Were Used:**
+- **Code Generation**: Boilerplate code, utility functions, and test cases
+- **Documentation**: Comprehensive docstrings, README sections, and inline comments  
+- **Test Writing**: 268 test cases covering unit, integration, and edge cases
+- **Refactoring**: Code quality improvements and performance optimization suggestions
+- **Problem Solving**: Solutions for multi-bank CSV normalization, validation pipelines, and error handling
+- **Project Planning**: BMad-compliant epic and story structuring
+
+**Development Workflow:**
+- Human developer defined requirements and architectural decisions
+- AI assistants (Copilot + Gemini CLI) suggested implementations following BMad Method
+- All code reviewed, tested, and validated by human developer
+- 90%+ test coverage ensures code quality and correctness
+
 ### Tech Stack
 
 - **Frontend/Backend**: Streamlit 1.28+ (Python web framework)
-- **AI Model**: Google Gemini 2.0 Flash (via REST API)
+- **AI Model (Application)**: Google Gemini 2.5 Flash API - Generates personalized financial coaching advice
+- **AI Assistant (Development)**: GitHub Copilot - Code generation, testing, and documentation support
 - **Architecture**: MVC (Model-View-Controller) pattern
 - **Data Processing**: Pandas 2.0+ with multi-format date and encoding support
 - **Visualization**: Plotly for interactive charts
